@@ -1,0 +1,47 @@
+# Local infrastructure for the Live Football Scores service.
+#   docker compose up -d
+#
+# Event Hubs emulator : amqp://localhost:5672   (Kafka 9092, health http://localhost:5300/health)
+# Azurite             : blob 10000 / queue 10001 / table 10002
+#   blob  -> Event Hubs checkpoints + rejected events
+#   table -> match history (matchevents), match status (matchstatus), ingestion stats
+#
+# Images use :latest to match Microsoft's docs; pin tags once the setup is working.
+
+name: live-scores
+
+services:
+  eventhubs:
+    container_name: eventhubs-emulator
+    image: mcr.microsoft.com/azure-messaging/eventhubs-emulator:latest
+    volumes:
+      - ./infra/local/eventhubs-config.json:/Eventhubs_Emulator/ConfigFiles/Config.json:ro
+    ports:
+      - "5672:5672"
+      - "9092:9092"
+      - "5300:5300"
+    environment:
+      BLOB_SERVER: azurite       # emulator keeps its own metadata/checkpoints in Azurite
+      METADATA_SERVER: azurite
+      ACCEPT_EULA: "Y"
+    depends_on:
+      - azurite
+    networks: [scores]
+
+  azurite:
+    container_name: azurite
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck --loose
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite-data:/data
+    networks: [scores]
+
+volumes:
+  azurite-data:
+
+networks:
+  scores:

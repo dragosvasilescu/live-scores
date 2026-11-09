@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "send": {
+      "commandName": "Project",
+      "commandLineArgs": "send events.ndjson",
+      "workingDirectory": "$(ProjectDir).."
+    },
+    "send (live)": {
+      "commandName": "Project",
+      "commandLineArgs": "send events.ndjson --delay-ms 20",
+      "workingDirectory": "$(ProjectDir).."
+    },
+    "replay": {
+      "commandName": "Project",
+      "commandLineArgs": "replay --match 36c7f7ee-e56e-4fdf-95aa-815677e7ce24",
+      "workingDirectory": "$(ProjectDir).."
+    }
+  }
+}
